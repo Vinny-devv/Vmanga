@@ -53,7 +53,7 @@ onAuthStateChanged(auth, (user) => {
         elements.loginBtn.classList.add('hidden');
         elements.userProfile.classList.remove('hidden');
         elements.userAvatar.src = user.photoURL;
-        elements.actualCommentForm.classList.remove('hidden');
+        if(elements.actualCommentForm) elements.actualCommentForm.classList.remove('hidden');
         if(elements.loginPrompt) elements.loginPrompt.classList.add('hidden');
 
         // تحقق صارم: هل أنت الحساب الإداري المعتمد؟
@@ -65,7 +65,7 @@ onAuthStateChanged(auth, (user) => {
         elements.loginBtn.classList.remove('hidden');
         elements.userProfile.classList.add('hidden');
         elements.adminPanelBtn.classList.add('hidden');
-        elements.actualCommentForm.classList.add('hidden');
+        if(elements.actualCommentForm) elements.actualCommentForm.classList.add('hidden');
         if(elements.loginPrompt) elements.loginPrompt.classList.remove('hidden');
     }
 });
@@ -78,9 +78,21 @@ function showSection(sectionName) {
     document.querySelectorAll('.page-section').forEach(sec => sec.classList.add('hidden'));
     document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
     
-    if (sectionName === 'home') { elements.homeSection.classList.remove('hidden'); document.getElementById('home-btn').classList.add('active'); loadAllManga(); }
-    else if (sectionName === 'genres') { elements.genresSection.classList.remove('hidden'); elements.homeSection.classList.remove('hidden'); document.getElementById('genres-btn').classList.add('active'); }
-    else if (sectionName === 'admin') { elements.adminSection.classList.remove('hidden'); elements.adminPanelBtn.classList.add('active'); loadAdminSelect(); }
+    if (sectionName === 'home') { 
+        elements.homeSection.classList.remove('hidden'); 
+        document.getElementById('home-btn').classList.add('active'); 
+        loadAllManga(); 
+    }
+    else if (sectionName === 'genres') { 
+        elements.genresSection.classList.remove('hidden'); 
+        elements.homeSection.classList.remove('hidden'); 
+        document.getElementById('genres-btn').classList.add('active'); 
+    }
+    else if (sectionName === 'admin') { 
+        elements.adminSection.classList.remove('hidden'); 
+        elements.adminPanelBtn.classList.add('active'); 
+        loadAdminSelect(); 
+    }
     else if (sectionName === 'details') { elements.detailsSection.classList.remove('hidden'); }
     else if (sectionName === 'reader') { elements.readerSection.classList.remove('hidden'); }
 }
@@ -103,7 +115,6 @@ document.getElementById('save-manga-btn').addEventListener('click', async () => 
         let formData = new FormData();
         formData.append("image", coverFile);
 
-        // الرفع المباشر والمجاني إلى خادم الصور البديل
         const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
             method: "POST",
             body: formData
@@ -111,7 +122,6 @@ document.getElementById('save-manga-btn').addEventListener('click', async () => 
         const resData = await response.json();
         const downloadURL = resData.data.url;
 
-        // حفظ تفاصيل العمل بـ Firestore
         await addDoc(collection(db, "manga"), {
             title: title,
             genres: genres,
@@ -193,7 +203,6 @@ async function loadAllManga(filterGenre = null, searchQuery = null) {
     });
 }
 
-// محرك البحث والفرز بالتصنيفات
 document.getElementById('search-btn').addEventListener('click', () => {
     loadAllManga(null, document.getElementById('search-input').value);
 });
@@ -205,7 +214,6 @@ document.querySelectorAll('.genre-tag').forEach(tag => {
     });
 });
 
-// فتح صفحة التفاصيل وعرض فصولها
 async function openMangaDetails(id, manga) {
     activeMangaId = id;
     showSection('details');
@@ -236,7 +244,6 @@ async function openMangaDetails(id, manga) {
     });
 }
 
-// فتح قارئ الفصول الاحترافي للمانهوا والتعليقات
 function openChapterReader(chapter, chapterDocId) {
     showSection('reader');
     document.getElementById('reader-chapter-title').innerText = `الفصل رقم ${chapter.chapterNumber}`;
@@ -257,7 +264,6 @@ function openChapterReader(chapter, chapterDocId) {
 
     loadComments(chapterDocId);
 
-    // تفعيل كود كتابة تعليق جديد للزوار المسجلين
     document.getElementById('submit-comment-btn').onclick = async () => {
         const text = document.getElementById('comment-text').value;
         if (!text) return;
@@ -275,7 +281,6 @@ function openChapterReader(chapter, chapterDocId) {
     };
 }
 
-// سحب وعرض التعليقات الحية للفصل
 async function loadComments(chapterDocId) {
     elements.commentsList.innerHTML = 'جاري تحديث النقاشات...';
     const q = query(collection(db, "comments"), where("chapterId", "==", chapterDocId), orderBy("createdAt", "desc"));
@@ -297,7 +302,6 @@ async function loadComments(chapterDocId) {
     });
 }
 
-// تحديث خيارات الاختيار في لوحة التحكم بشكل دوري للأدمن
 async function loadAdminSelect() {
     elements.adminMangaSelect.innerHTML = '';
     const snap = await getDocs(collection(db, "manga"));
@@ -306,5 +310,4 @@ async function loadAdminSelect() {
     });
 }
 
-// الإقلاع الأولي للموقع
 loadAllManga();
