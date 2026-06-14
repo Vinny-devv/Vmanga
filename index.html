@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vnovels | منصة المانجا والمانهو الاحترافية</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome للأيقونات الفخمة -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- الشاشة الافتتاحية للموقع بتأثير ثلاثي الأبعاد -->
+    <header class="main-navbar">
+        <div class="nav-container">
+            <h1 class="logo">V<span>novels</span></h1>
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="ابحث عن مانجا أو مانهوا...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="nav-actions">
+                <button id="home-btn" class="nav-link active"><i class="fas fa-home"></i> الرئيسية</button>
+                <button id="genres-btn" class="nav-link"><i class="fas fa-tags"></i> التصنيفات</button>
+                <button id="admin-panel-btn" class="nav-link admin-only hidden"><i class="fas fa-user-shield"></i> لوحة الأدمن</button>
+                <div id="auth-section">
+                    <button id="login-btn" class="btn-primary"><i class="fab fa-google"></i> دخول بالـ Gmail</button>
+                    <div id="user-profile" class="hidden">
+                        <img id="user-avatar" src="" alt="Avatar">
+                        <button id="logout-btn" class="btn-danger"><i class="fas fa-sign-out-alt"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- قسم التصنيفات المخفي ويظهر عند الضغط عليه -->
+        <section id="genres-section" class="genres-container hidden page-section">
+            <h2 class="section-title">التصنيفات</h2>
+            <div class="genres-grid">
+                <span class="genre-tag" data-genre="أكشن">أكشن</span>
+                <span class="genre-tag" data-genre="مغامرة">مغامرة</span>
+                <span class="genre-tag" data-genre="خيال">خيال</span>
+                <span class="genre-tag" data-genre="دراما">دراما</span>
+                <span class="genre-tag" data-genre="رومانس">رومانس</span>
+                <span class="genre-tag" data-genre="غموض">غموض</span>
+            </div>
+        </section>
+
+        <!-- الصفحة الرئيسية (عرض المانجا) -->
+        <section id="home-section" class="page-section">
+            <div class="hero-banner">
+                <div class="hero-content">
+                    <h2>عالم المانجا والمانهوا بين يديك</h2>
+                    <p>استمتع بقراءة أحدث الفصول الحصرية بجودة عالية وتأثيرات غامرة.</p>
+                </div>
+            </div>
+            
+            <h2 class="section-title"><i class="fas fa-fire"></i> المانجا المضافة حديثاً</h2>
+            <div id="manga-grid" class="manga-grid">
+                <!-- المانجا ستظهر هنا ديناميكياً بواسطة جافا سكريبت -->
+                <div class="loading-spinner">جاري تحميل العوالم...</div>
+            </div>
+        </section>
+
+        <!-- صفحة تفاصيل المانجا والفصول -->
+        <section id="details-section" class="page-section hidden">
+            <button class="back-btn"><i class="fas fa-arrow-right"></i> العودة للرئيسية</button>
+            <div class="manga-details-wrapper">
+                <div class="manga-cover-3d">
+                    <img id="detail-cover" src="" alt="Cover">
+                </div>
+                <div class="manga-info-text">
+                    <h1 id="detail-title">اسم المانجا</h1>
+                    <div id="detail-genres" class="manga-genres-list"></div>
+                    <p id="detail-description">الوصف هنا...</p>
+                </div>
+            </div>
+            <h3 class="section-title">الفصول المتاحة</h3>
+            <div id="chapters-list" class="chapters-list"></div>
+        </section>
+
+        <!-- صفحة قارئ الفصول (المشاهد المخصص للمانهوا) -->
+        <section id="reader-section" class="page-section hidden">
+            <div class="reader-controls">
+                <button class="back-to-manga-btn"><i class="fas fa-arrow-right"></i> العودة للتفاصيل</button>
+                <h2 id="reader-chapter-title">الفصل X</h2>
+            </div>
+            <div id="viewer-images" class="viewer-images">
+                <!-- صور الفصل ستعرض هنا تلو الأخرى بسلاسة مانهوا -->
+            </div>
+            
+            <!-- نظام التعليقات المتطور تحت كل فصل -->
+            <div class="comments-container">
+                <h3><i class="fas fa-comments"></i> مناقشة الفصل</h3>
+                <div id="comment-form-wrapper">
+                    <p class="login-prompt">يرجى تسجيل الدخول بكود Gmail لتتمكن من التعليق.</p>
+                    <div class="comment-input-box hidden" id="actual-comment-form">
+                        <textarea id="comment-text" placeholder="اكتب رأيك وتوقعاتك للفصل القادم هنا..."></textarea>
+                        <button id="submit-comment-btn" class="btn-primary">إرسال التعليق</button>
+                    </div>
+                </div>
+                <div id="comments-list" class="comments-list"></div>
+            </div>
+        </section>
+
+        <!-- لوحة تحكم الأدمن الخاصة بأنور فقط -->
+        <section id="admin-section" class="page-section hidden">
+            <h2 class="section-title"><i class="fas fa-user-shield"></i> لوحة تحكم الأدمن الفخمة</h2>
+            <div class="admin-grid">
+                <!-- كرت إضافة مانجا جديدة -->
+                <div class="admin-card">
+                    <h3><i class="fas fa-plus-circle"></i> إضافة عمل جديد (مانجا/مانهوا)</h3>
+                    <div class="form-group">
+                        <label>عنوان العمل:</label>
+                        <input type="text" id="admin-manga-title" placeholder="مثال: Solo Leveling">
+                    </div>
+                    <div class="form-group">
+                        <label>التصنيفات (افصل بينها بفاصلة):</label>
+                        <input type="text" id="admin-manga-genres" placeholder="أكشن, خيال, مغامرة">
+                    </div>
+                    <div class="form-group">
+                        <label>قصة العمل (الوصف):</label>
+                        <textarea id="admin-manga-desc" placeholder="اكتب قصة العمل هنا..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>غلاف العمل (من الاستوديو/Gallery مباشرة):</label>
+                        <input type="file" id="admin-manga-cover" accept="image/*">
+                    </div>
+                    <button id="save-manga-btn" class="btn-primary">حفظ ونشر العمل الجديد</button>
+                </div>
+
+                <!-- كرت إضافة فصل جديد لعمل موجود -->
+                <div class="admin-card">
+                    <h3><i class="fas fa-file-upload"></i> رفع فصل جديد</h3>
+                    <div class="form-group">
+                        <label>اختر العمل:</label>
+                        <select id="admin-manga-select">
+                            <!-- المانجا ستظهر هنا تلقائياً لتختار منها -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الفصل:</label>
+                        <input type="number" id="admin-chapter-number" placeholder="مثال: 1">
+                    </div>
+                    <div class="form-group">
+                        <label>صفحات الفصل (يمكنك اختيار عدة صور معاً من الـ Gallery):</label>
+                        <input type="file" id="admin-chapter-pages" accept="image/*" multiple>
+                    </div>
+                    <button id="save-chapter-btn" class="btn-primary">رفع ونشر الفصل</button>
+                    <div id="upload-progress" class="upload-progress"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- تضمين مكتبات Firebase (الإصدار الحديث المعتمد على الويب) -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
