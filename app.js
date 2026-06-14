@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
 import { getFirestore, collection, addDoc, getDocs, doc, getDoc, query, where, orderBy } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 // إعدادات الفايربيز المخصصة لمشروعك vnovels
 const firebaseConfig = {
@@ -18,10 +17,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
-// الإيميل الرسمي الخاص بك لتشغيل حماية لوحة التحكم
+// الـ API Key الخاص بك لرفع الصور مجاناً من الـ Gallery
+const IMGBB_API_KEY = "bc44f9161e1388f362d3361274462f3d";
+
+// الإيميل الرسمي الخاص بك لتشغيل حماية لوحة التحكم كـ Admin
 const ADMIN_EMAIL = "anwarbah96@gmail.com";
 let currentUser = null;
 let activeMangaId = null;
@@ -72,7 +73,7 @@ onAuthStateChanged(auth, (user) => {
 elements.loginBtn.addEventListener('click', () => signInWithPopup(auth, provider));
 elements.logoutBtn.addEventListener('click', () => signOut(auth).then(() => showSection('home')));
 
-// محرك تحويل الصفحات (SPA) بسلاسة وثبات
+// محرك تحويل الصفحات بسلاسة وثبات
 function showSection(sectionName) {
     document.querySelectorAll('.page-section').forEach(sec => sec.classList.add('hidden'));
     document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
@@ -89,7 +90,7 @@ document.getElementById('genres-btn').addEventListener('click', () => showSectio
 elements.adminPanelBtn.addEventListener('click', () => showSection('admin'));
 document.querySelectorAll('.back-btn').forEach(btn => btn.addEventListener('click', () => showSection('home')));
 
-// --- لوحة التحكم: رفع المانجا من الـ Gallery ---
+// --- لوحة التحكم: رفع غلاف المانجا مجاناً من المعرض ---
 document.getElementById('save-manga-btn').addEventListener('click', async () => {
     const title = document.getElementById('admin-manga-title').value;
     const genres = document.getElementById('admin-manga-genres').value.split(',').map(g => g.trim());
@@ -99,10 +100,16 @@ document.getElementById('save-manga-btn').addEventListener('click', async () => 
     if (!title || !coverFile) return alert("يرجى ملء الاسم واختيار صورة الغلاف");
 
     try {
-        // رفع الصورة المباشرة لـ Firebase Storage
-        const storageRef = ref(storage, `covers/${Date.now()}_${coverFile.name}`);
-        const snapshot = await uploadBytes(storageRef, coverFile);
-        const downloadURL = await getDownloadURL(snapshot.ref);
+        let formData = new FormData();
+        formData.append("image", coverFile);
+
+        // الرفع المباشر والمجاني إلى خادم الصور البديل
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: "POST",
+            body: formData
+        });
+        const resData = await response.json();
+        const downloadURL = resData.data.url;
 
         // حفظ تفاصيل العمل بـ Firestore
         await addDoc(collection(db, "manga"), {
@@ -118,7 +125,7 @@ document.getElementById('save-manga-btn').addEventListener('click', async () => 
     } catch (err) { alert("حدث خطأ أثناء الرفع: " + err.message); }
 });
 
-// --- لوحة التحكم: رفع صفحات الفصول المتعددة ---
+// --- لوحة التحكم: رفع صفحات الفصول المتعددة مجاناً ---
 document.getElementById('save-chapter-btn').addEventListener('click', async () => {
     const mangaId = elements.adminMangaSelect.value;
     const chNumber = document.getElementById('admin-chapter-number').value;
@@ -127,17 +134,22 @@ document.getElementById('save-chapter-btn').addEventListener('click', async () =
 
     if (!mangaId || !chNumber || pageFiles.length === 0) return alert("أكمل البيانات واختر صور الفصل");
 
-    progressDiv.innerText = "جاري رفع الصفحات، يرجى الانتظار...";
+    progressDiv.innerText = "جاري رفع الصفحات مجاناً، يرجى الانتظار...";
     const pageUrls = [];
 
     try {
-        // رفع الصور تلو الأخرى وتخزين روابطها بالترتيب الصحيح
         for (let i = 0; i < pageFiles.length; i++) {
             const file = pageFiles[i];
-            const pageRef = ref(storage, `chapters/${mangaId}/ch_${chNumber}/page_${i}_${Date.now()}`);
-            const snap = await uploadBytes(pageRef, file);
-            const url = await getDownloadURL(snap.ref);
-            pageUrls.push(url);
+            let formData = new FormData();
+            formData.append("image", file);
+
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: "POST",
+                body: formData
+            });
+            const resData = await response.json();
+            pageUrls.push(resData.data.url);
+            
             progressDiv.innerText = `تم رفع ${i+1} من أصل ${pageFiles.length} صفحة...`;
         }
 
@@ -234,7 +246,7 @@ function openChapterReader(chapter, chapterDocId) {
     chapter.pages.forEach(url => {
         const img = document.createElement('img');
         img.src = url;
-        img.loading = 'lazy'; // زيادة سرعة تحميل الصفحات على الأجهزة الذكية
+        img.loading = 'lazy';
         viewer.appendChild(img);
     });
 
@@ -245,7 +257,7 @@ function openChapterReader(chapter, chapterDocId) {
 
     loadComments(chapterDocId);
 
-    // تفعيل كود كتابة تعليق جديد
+    // تفعيل كود كتابة تعليق جديد للزوار المسجلين
     document.getElementById('submit-comment-btn').onclick = async () => {
         const text = document.getElementById('comment-text').value;
         if (!text) return;
